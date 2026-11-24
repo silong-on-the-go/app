@@ -17,15 +17,9 @@ The demo, where renting and payments are simulated end to end, stays at https://
 
 ## How it is built
 
-This repo is built from [silong-on-the-go/silong](https://github.com/silong-on-the-go/silong). Both sites run the same `index.html`. This repo's `config.js` sets `MODE: 'live'`, which switches on real accounts and turns renting into "launching soon". The two sites keep their stored data and offline copies apart, even though they share one address.
+This repo started as a copy of the demo ([silong-on-the-go/silong](https://github.com/silong-on-the-go/silong)). Its `config.js` sets `MODE: 'live'`, which switches on real accounts and turns renting into "launching soon". The two sites keep their stored data and offline copies apart, even though they share one address.
 
-To update this app after changing the demo repo, run this from the demo repo's folder, then commit and push here:
-
-```
-node tools/build-app.mjs ../silong-app
-```
-
-Only `config.js` and this README belong to this repo; the build script never touches them.
+The demo is now frozen, and the real app is developed here directly: change and publish this repo only. Don't run the demo repo's `tools/build-app.mjs` any more, because it would overwrite this app with the demo's older code.
 
 ## The database (Supabase)
 
