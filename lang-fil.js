@@ -389,7 +389,38 @@
     'How do I top up?': 'Paano mag-top up?',
     'Open Payment, choose an amount and pay the InstaPay QR from GCash, Maya or any bank app. Then send us the reference number. We add the credit once we see your transfer.': 'Buksan ang Bayad, pumili ng halaga at bayaran ang InstaPay QR gamit ang GCash, Maya, o kahit anong bank app. Tapos ipadala sa amin ang reference number. Idadagdag namin ang credit pagkakita namin ng transfer mo.'
   });
+  /* top-up v2: pay from GCash, Maya or a bank, with a receipt screenshot */
+  Object.assign(dict, {
+    '1. How much credit?': '1. Magkano ang credit?', 'Other amount, ₱15 to ₱5,000': 'Ibang halaga, ₱15 hanggang ₱5,000', 'Other amount': 'Ibang halaga',
+    '2. Where will you pay from?': '2. Saan ka magbabayad?', 'Pay from': 'Magbabayad mula sa', 'Free': 'Libre', 'Bank': 'Bangko',
+    '3. Pay with GCash': '3. Magbayad gamit ang GCash', '3. Pay with Maya': '3. Magbayad gamit ang Maya', '3. Pay from your bank app': '3. Magbayad mula sa bank app mo',
+    'After you pay, take a screenshot of your receipt. You’ll upload it in step 4.': 'Pagkatapos magbayad, i-screenshot ang resibo mo. Ia-upload mo ito sa step 4.',
+    'Send exactly': 'Ipadala ang eksaktong', 'No fees': 'Walang dagdag na bayad', 'Choose an amount first.': 'Pumili muna ng halaga.',
+    'GCash QR code': 'QR code ng GCash', 'Maya QR code': 'QR code ng Maya', 'Bank QR code': 'QR code para sa bangko',
+    'In GCash, tap QR, then upload the saved QR. Or scan it from another screen.': 'Sa GCash, i-tap ang QR, tapos i-upload ang na-save na QR. O i-scan ito mula sa ibang screen.',
+    'In Maya, tap Scan, then upload the saved QR. Or scan it from another screen.': 'Sa Maya, i-tap ang Scan, tapos i-upload ang na-save na QR. O i-scan ito mula sa ibang screen.',
+    'In your bank app, open Scan to pay or Pay QR (InstaPay), then upload the saved QR. Or scan it from another screen.': 'Sa bank app mo, buksan ang Scan to pay o Pay QR (InstaPay), tapos i-upload ang na-save na QR. O i-scan ito mula sa ibang screen.',
+    'Enter the exact amount above. If there’s a message box, type your code': 'Ilagay ang eksaktong halaga sa itaas. Kung may message box, i-type ang code mo',
+    'Enter the exact amount above, with the processing fee. If there’s a message box, type your code': 'Ilagay ang eksaktong halaga sa itaas, kasama ang processing fee. Kung may message box, i-type ang code mo',
+    'Pay, then take a screenshot of your receipt.': 'Magbayad, tapos i-screenshot ang resibo mo.',
+    '4. Upload your receipt': '4. I-upload ang resibo mo', 'Choose your receipt screenshot': 'Piliin ang screenshot ng resibo mo', 'Your receipt screenshot': 'Screenshot ng resibo mo',
+    'It helps us find your payment faster.': 'Makakatulong ito para mas mabilis naming makita ang bayad mo.',
+    'We check our account and add the credit, usually within the day.': 'Titingnan namin ang account namin at idadagdag ang credit, kadalasan sa loob ng araw.',
+    'Upload the screenshot of your receipt.': 'I-upload ang screenshot ng resibo mo.', 'Use only letters and numbers for the reference number.': 'Mga letra at numero lang ang gamitin sa reference number.',
+    'Choose where you’ll pay from.': 'Piliin kung saan ka magbabayad.',
+    'That file isn’t a picture we can read. Upload a screenshot (PNG or JPG).': 'Hindi namin mabasa ang file na iyan. Mag-upload ng screenshot (PNG o JPG).',
+    'Couldn’t upload the screenshot. Check your connection and try again.': 'Hindi na-upload ang screenshot. Tingnan ang koneksyon mo at subukan ulit.',
+    'Check each one first: the same amount and reference number, in the account shown.': 'Tingnan muna ang bawat isa: parehong halaga at reference number, sa account na nakalagay.',
+    'Check': 'Tingnan', 'Credit to add': 'Credit na idadagdag', 'Receipt screenshot': 'Screenshot ng resibo', 'No screenshot.': 'Walang screenshot.',
+    'Only approve it if this money is in that account’s history. A screenshot alone isn’t proof.': 'Aprubahan lang kung nasa history ng account na iyon ang perang ito. Hindi sapat na patunay ang screenshot lang.',
+    'Top-up via GCash': 'Top-up gamit ang GCash', 'Top-up via Maya': 'Top-up gamit ang Maya',
+    'Paying from a bank adds a small processing fee, shown before you pay.': 'May maliit na processing fee kapag mula sa bangko ang bayad, na makikita bago ka magbayad.',
+    'If you top up, SILONG keeps the amount, the receipt screenshot, the reference number and the name you give, as payment records, even if you later delete your account. Only you and the SILONG team can see your screenshot.': 'Kung mag-top up ka, itatago ng SILONG ang halaga, ang screenshot ng resibo, ang reference number, at ang pangalang ibinigay mo bilang talaan ng bayad, kahit burahin mo pa ang account mo. Ikaw at ang SILONG team lang ang makakakita ng screenshot mo.'
+  });
+  Object.assign(dict, { 'All three are paid by QR: you’ll scan or upload it in that app.': 'QR ang bayad sa tatlo: i-scan o i-upload mo ito sa app na iyon.', 'GCash, Maya or bank': 'GCash, Maya, o bangko' });
   const patterns = [
+    [/^\+(₱\d+) fee$/, '+$1 na bayad'],
+    [/^(₱[\d,]+) credit \+ (₱\d+) processing fee$/, '$1 na credit + $2 na processing fee'],
     [/^Sent for approval\. We’ll add (₱[\d,]+) once we see your transfer\.$/, 'Naipadala para maaprubahan. Idadagdag namin ang $1 pagkakita namin ng transfer mo.'],
     [/^You still have (₱[\d,.]+) credit\.$/, 'May $1 ka pang credit.'],
     [/^Hello, (.+)!$/, 'Kumusta, $1!'],

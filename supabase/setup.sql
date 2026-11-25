@@ -107,8 +107,11 @@ create table if not exists public.topups (
   created_at timestamptz not null default now(),
   user_id uuid default auth.uid() references auth.users (id) on delete set null,
   code text not null unique check (code ~ '^SLG-[A-Z0-9]{6}$'),
-  amount integer not null check (amount between 50 and 5000),
-  bank_ref text not null check (char_length(bank_ref) between 4 and 40),
+  amount integer not null check (amount between 15 and 5000),
+  method text not null default 'bank' check (method in ('gcash', 'maya', 'bank')),
+  fee integer not null default 0 check (fee between 0 and 50),
+  receipt_path text check (char_length(receipt_path) <= 200),
+  bank_ref text check (char_length(bank_ref) between 4 and 40),
   payer_name text check (char_length(payer_name) <= 120),
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   decided_at timestamptz,
@@ -118,8 +121,18 @@ alter table public.topups enable row level security;
 drop policy if exists "read own topups" on public.topups;
 create policy "read own topups" on public.topups for select to authenticated using ((select auth.uid()) = user_id);
 drop policy if exists "request a topup" on public.topups;
+-- Upgrades for a database set up before these columns existed (safe to run again)
+alter table public.topups add column if not exists method text not null default 'bank' check (method in ('gcash', 'maya', 'bank'));
+alter table public.topups add column if not exists fee integer not null default 0 check (fee between 0 and 50);
+alter table public.topups add column if not exists receipt_path text check (char_length(receipt_path) <= 200);
+alter table public.topups alter column bank_ref drop not null;
+alter table public.topups drop constraint if exists topups_amount_check;
+alter table public.topups add constraint topups_amount_check check (amount between 15 and 5000);
+-- A top-up request needs its receipt screenshot, stored in the sender's own folder.
 create policy "request a topup" on public.topups for insert to authenticated
-  with check ((select auth.uid()) = user_id and status = 'pending' and decided_at is null and note is null);
+  with check ((select auth.uid()) = user_id and status = 'pending' and decided_at is null and note is null
+              and receipt_path is not null and split_part(receipt_path, '/', 1) = (select auth.uid())::text);
+
 
 create table if not exists public.credit_ledger (
   id bigint generated always as identity primary key,
@@ -149,10 +162,23 @@ $$;
 revoke all on function public.is_team() from public, anon;
 grant execute on function public.is_team() to authenticated;
 
-create or replace function public.team_pending_topups()
-returns table (code text, amount integer, bank_ref text, payer_name text, requested_at timestamptz, email text, name text)
+-- Receipt screenshots: a private storage bucket. People upload into their own folder and can see their
+-- own; the team can see all of them. Nobody can change or delete one from the website.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('receipts', 'receipts', false, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+drop policy if exists "upload own receipt" on storage.objects;
+create policy "upload own receipt" on storage.objects for insert to authenticated
+  with check (bucket_id = 'receipts' and (storage.foldername(name))[1] = (select auth.uid())::text);
+drop policy if exists "see own receipt or team" on storage.objects;
+create policy "see own receipt or team" on storage.objects for select to authenticated
+  using (bucket_id = 'receipts' and ((storage.foldername(name))[1] = (select auth.uid())::text or public.is_team()));
+
+drop function if exists public.team_pending_topups();
+create function public.team_pending_topups()
+returns table (code text, amount integer, fee integer, method text, receipt_path text, bank_ref text, payer_name text, requested_at timestamptz, email text, name text)
 language sql stable security definer set search_path = '' as $$
-  select t.code, t.amount, t.bank_ref, t.payer_name, t.created_at, u.email::text, (u.raw_user_meta_data ->> 'name')
+  select t.code, t.amount, t.fee, t.method, t.receipt_path, t.bank_ref, t.payer_name, t.created_at, u.email::text, (u.raw_user_meta_data ->> 'name')
   from public.topups t left join auth.users u on u.id = t.user_id
   where t.status = 'pending' and public.is_team()
   order by t.created_at;
@@ -173,7 +199,8 @@ begin
   returning * into t;
   if t.id is null then raise exception 'That top-up was already handled.'; end if;
   if p_approve and t.user_id is not null then
-    insert into public.credit_ledger (user_id, amount, kind, ref, label) values (t.user_id, t.amount, 'topup', t.code, 'Top-up by bank transfer');
+    insert into public.credit_ledger (user_id, amount, kind, ref, label) values (t.user_id, t.amount, 'topup', t.code,
+      case t.method when 'gcash' then 'Top-up via GCash' when 'maya' then 'Top-up via Maya' else 'Top-up by bank transfer' end);
   end if;
   return json_build_object('code', t.code, 'status', t.status, 'amount', t.amount);
 end;

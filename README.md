@@ -36,7 +36,7 @@ A free project pauses after a week with no activity. Restore it from the dashboa
 
 ## SILONG credit (top-ups)
 
-Rentals will be paid from SILONG credit. People top up by paying the InstaPay QR in `img/pay-qr.png` from GCash, Maya or any bank app, then send the reference number from their receipt. An approver checks the bank history and approves it on the **Approve top-ups** page, in the menu for approvers only. Only approvals add credit. The database refuses any other change, and the same top-up can't be approved twice.
+Rentals will be paid from SILONG credit. People choose an amount (₱15, ₱20, ₱25, ₱40, or any whole amount up to ₱5,000) and where they'll pay from: GCash, Maya or a bank. They get only that one QR (`img/pay-gcash.png`, `img/pay-maya.png` or `img/pay-bank.png`) and the exact amount to send. After paying, they upload a screenshot of the receipt; the reference number is optional. An approver checks that the money arrived in that account and approves it on the **Approve top-ups** page, in the menu for approvers only. The page shows where to look, how much should have arrived, and the screenshot. Only approvals add credit. The database refuses any other change, and the same top-up can't be approved twice.
 
 - **Who can top up:** `TOPUPS` in `config.js`. It is set to `'team'`, so only approvers see Top up, for testing. Change it to `'all'` to open top-ups to everyone with an account, or `'off'` to hide them.
 - **Make someone an approver:** they sign up in the app first. Then, in Supabase's **SQL Editor**, run:
@@ -45,8 +45,9 @@ Rentals will be paid from SILONG credit. People top up by paying the InstaPay QR
 - **Refund unused credit:** send the money back from the bank, then record it, for example a ₱200 refund:
   `insert into public.credit_ledger (user_id, amount, kind, label) select id, -200, 'refund', 'Refund' from auth.users where email = 'their@email.com';`
 - **Records:** `select * from public.topups order by created_at desc;` These are kept, without the account, even if someone deletes their account.
-- **Fees:** paying a bank QR from GCash costs the customer ₱10, which is GCash's InstaPay fee. Many bank apps send for free.
-- **The QR** pays a personal MariBank account, and payers see the name "BILLIE JOSH T.". When there is a business account, replace `img/pay-qr.png` and `PAY_TO` in `config.js`.
+- **Fees:** paying from a bank adds `BANK_FEE` in `config.js` (₱5) to what the customer sends, shown as a processing fee; their credit is the amount they chose. GCash and Maya have no fee.
+- **Receipt screenshots:** in Supabase **Storage → receipts**, a private bucket. Only the customer and approvers can open them. Each top-up's `receipt_path` points to its file, and they're kept as payment records.
+- **The QRs** are personal accounts. When there are business accounts, replace the three images in `img/`; the page shows only the QR, with no names.
 
 ## Before launch
 

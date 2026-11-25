@@ -7,8 +7,9 @@
 
    GOOGLE_MAPS_API_KEY is optional. Empty keeps the free OpenStreetMap map.
 
-   Top-ups (SILONG credit): people pay the InstaPay QR in PAY_QR from GCash, Maya or any bank app and
-   send the reference number; an approver checks the bank history and approves (Approve top-ups page).
+   Top-ups (SILONG credit): people choose where they pay from (GCash, Maya or a bank), pay that one QR,
+   and upload a screenshot of the receipt; an approver checks the account and approves (Approve top-ups
+   page). Paying from a bank adds BANK_FEE (pesos) as a processing fee; GCash and Maya have none.
    TOPUPS: 'off', 'team' (only approvers see Top up, for testing) or 'all' (everyone with an account).
    Approvers are listed in the database: see supabase/setup.sql, section 7. */
 window.SILONG_CONFIG = {
@@ -17,6 +18,6 @@ window.SILONG_CONFIG = {
   SUPABASE_KEY: 'sb_publishable_7BxXVrMhFLWl2PUIa4z55g_OQZw1lJr',
   GOOGLE_MAPS_API_KEY: '',
   TOPUPS: 'team',
-  PAY_QR: 'img/pay-qr.png',
-  PAY_TO: 'Billie Josh T. · MariBank •••• 0884'
+  PAY_QR: { gcash: 'img/pay-gcash.png', maya: 'img/pay-maya.png', bank: 'img/pay-bank.png' },
+  BANK_FEE: 5
 };
