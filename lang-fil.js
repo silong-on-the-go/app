@@ -419,6 +419,7 @@
   });
   Object.assign(dict, { 'All three are paid by QR: you’ll scan or upload it in that app.': 'QR ang bayad sa tatlo: i-scan o i-upload mo ito sa app na iyon.', 'GCash, Maya or bank': 'GCash, Maya, o bangko' });
   Object.assign(dict, { 'credit · Top up': 'credit · Mag-top up' });
+  Object.assign(dict, { 'SILONG was updated. Close and reopen it to see what’s new.': 'Na-update ang SILONG. Isara at buksan ulit para makita ang bago.' });
   const patterns = [
     [/^\+(₱\d+) fee$/, '+$1 na bayad'],
     [/^(₱[\d,]+) credit \+ (₱\d+) processing fee$/, '$1 na credit + $2 na processing fee'],
@@ -432,12 +433,12 @@
     [/^Daylight today: (.+)$/, 'Liwanag ngayong araw: $1'],
     [/^(.+) · (\d+)% chance of rain today$/, (m, sky, p) => `${D(sky)} · ${p}% tsansa ng ulan ngayon`],
     [/^(Very strong|Strong) sun today, UV peak (\d+)\. An umbrella doubles as shade\.$/, (m, s, u) => `${s === 'Strong' ? 'Matindi' : 'Napakatindi'} ang araw ngayon, UV peak ${u}. Panangga rin sa init ang payong.`],
-    [/^Nearest: Silongan ([A-Z]), (.+) away, about (\d+) min on foot\.$/, 'Pinakamalapit: Silongan $1, $2 ang layo, mga $3 minutong lakad.'],
-    [/^Umbrella unlocked at Silongan ([A-Z]) \(demo\)\. The meter is running\.$/, 'Na-unlock ang payong sa Silongan $1 (demo). Tumatakbo na ang metro.'],
-    [/^You scanned Silongan ([A-Z])\.$/, 'Na-scan mo ang Silongan $1.'],
+    [/^Nearest: (\S+ Silongan), (.+) away, about (\d+) min on foot\.$/, 'Pinakamalapit: $1, $2 ang layo, mga $3 minutong lakad.'],
+    [/^Umbrella unlocked at (\S+ Silongan) \(demo\)\. The meter is running\.$/, 'Na-unlock ang payong sa $1 (demo). Tumatakbo na ang metro.'],
+    [/^You scanned (\S+ Silongan)\.$/, 'Na-scan mo ang $1.'],
     [/^(\d+) vending machines around BGC$/, '$1 makina sa paligid ng BGC'],
-    [/^Up to (\d+) Hours? · Silongan ([A-Z])$/, 'Hanggang $1 oras · Silongan $2'],
-    [/^Pay as you go · (.+) · Silongan ([A-Z])$/, 'Bayad ayon sa oras · $1 · Silongan $2'],
+    [/^Up to (\d+) Hours? · (\S+ Silongan)$/, 'Hanggang $1 oras · $2'],
+    [/^Pay as you go · (.+) · (\S+ Silongan)$/, 'Bayad ayon sa oras · $1 · $2'],
     [/^(₱[\d.,]+) demo credit added\.$/, '$1 na demo credit ang naidagdag.'],
     [/^(₱[\d.,]+) charged to (.+) \(demo\)\. Salamat!$/, '$1 ang sinisingil sa $2 (demo). Salamat!'],
     [/^will be charged to (.+)\.$/, 'ang sisingilin sa $1.'],

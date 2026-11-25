@@ -1200,11 +1200,11 @@ const PLANS = [
 /* Pin coordinates are APPROXIMATE placeholders placed from the street descriptions.
    Replace lat/lng with surveyed vending machine coordinates before launch. */
 const KIOSKS = [
-  { id: 'A', name: 'SILONGAN 1', loc: 'Location A', title: 'One Bonifacio High Street / 5th Avenue Pedestrian Plaza',
+  { id: 'A', label: 'Plaza Silongan', name: 'Plaza Silongan', loc: 'Location A', title: 'One Bonifacio High Street / 5th Avenue Pedestrian Plaza',
     address: '5th Avenue corner 28th Street perimeter, BGC, Taguig, Philippines', lat: 14.5519, lng: 121.0473, emblem: 'img/b3e5dbed33.png' },
-  { id: 'B', name: 'SILONGAN 2', loc: 'Location B', title: 'Bonifacio High Street Central – 7th Avenue Promenade',
+  { id: 'B', label: 'Promenade Silongan', name: 'Promenade Silongan', loc: 'Location B', title: 'Bonifacio High Street Central – 7th Avenue Promenade',
     address: '7th Avenue corner High Street Promenade, BGC, Taguig, Philippines', lat: 14.5524, lng: 121.0489, emblem: 'img/2724515ba7.png' },
-  { id: 'C', name: 'SILONGAN 3', loc: 'Location C', title: 'Bonifacio Stopover / 31st Street Corridor',
+  { id: 'C', label: 'Corridor Silongan', name: 'Corridor Silongan', loc: 'Location C', title: 'Bonifacio Stopover / 31st Street Corridor',
     address: '31st Street corner 5th Avenue, BGC, Taguig, Philippines', lat: 14.5542, lng: 121.0468, emblem: 'img/d87dedd030.png' }
 ];
 const CENTER = {
@@ -1250,6 +1250,7 @@ const fmtDurShort = (ms) => {
 };
 const plan = (id) => PLANS.find((p) => p.id === id);
 const kiosk = (id) => KIOSKS.find((k) => k.id === id);
+const kName = (id) => (kiosk(id) || {}).label || 'Silongan ' + id;   /* Plaza, Promenade or Corridor Silongan */
 
 /* Pay as you go: charged once, on return, for the time actually used, at the lowest price step
    that covers it. At most P40 per day, and never more than P225 in total (the price of the
@@ -1739,12 +1740,12 @@ function unlockAt(id) {
   const rental = Rentals.start(S.user.id, { planId: '24h', kioskId: id });
   Rentals.update(S.user.id, rental.id, (x) => { x.payg = true; x.label = 'Pay as you go'; x.price = 0; });
   Stats.event('rental_start');
-  toast('Umbrella unlocked at Silongan ' + id + ' (demo). The meter is running.'); navigate('rentals');
+  toast('Umbrella unlocked at ' + kName(id) + ' (demo). The meter is running.'); navigate('rentals');
 }
 function scannedAt(id) {
   if (LIVE) { launchSheet(id); return; }
   if (activeRental()) { toast('You already have an umbrella out. Return it first.'); navigate('rentals'); return; }
-  rentSheet(id); toast('You scanned Silongan ' + id + '.');
+  rentSheet(id); toast('You scanned ' + kName(id) + '.');
 }
 /* The real app before launch: there are no machines or payments yet, so anything that would start a
    rental explains that instead, and offers launch news. */
@@ -1757,7 +1758,7 @@ function launchSheet(kioskId) {
   const k = kioskId && kiosk(kioskId);
   openModal({ label: 'SILONG is launching soon', html: `
     <div class="modal-head"><div><span class="eyebrow">Launching soon</span><h2>${k ? 'This Silongan opens soon' : 'Renting opens at launch'}</h2></div><button class="icon-btn" type="button" data-close aria-label="Close">${ic('x')}</button></div>
-    ${k ? `<div class="scan-box"><img src="${k.emblem}" alt="" width="64" height="64" style="border-radius:14px"><div><b>Silongan ${esc(k.id)}</b><p class="muted small" style="margin:4px 0 0">${esc(k.title)}</p></div></div>` : ''}
+    ${k ? `<div class="scan-box"><img src="${k.emblem}" alt="" width="64" height="64" style="border-radius:14px"><div><b>${esc(k.label)}</b><p class="muted small" style="margin:4px 0 0">${esc(k.title)}</p></div></div>` : ''}
     <p style="margin:0">SILONG’s vending machines are being prepared. Renting and payments open the day they’re installed.</p>
     ${launchCTA()}
     <p class="muted small" style="margin:0">Want to see how renting will work? <a href="${DEMO_URL}" target="_blank" rel="noopener">Try the demo</a></p>` });
@@ -1970,12 +1971,10 @@ function previewMapSVG() {
   <g id="mk-layer"></g>`;
 }
 function markerSVG(k, i) {
-  return `<g class="mk" data-k="${k.id}" tabindex="0" role="button" aria-label="${esc(k.name)}, ${esc(k.loc)}: ${esc(k.title)}"><g class="mk-in" style="--i:${i}"><circle class="mk-ring" r="12"/><circle class="mk-ring r2" r="12"/><g class="mk-bob">
+  return `<g class="mk" data-k="${k.id}" tabindex="0" role="button" aria-label="${esc(k.label)}: ${esc(k.title)}"><g class="mk-in" style="--i:${i}"><circle class="mk-ring" r="12"/><circle class="mk-ring r2" r="12"/><g class="mk-bob">
     <path d="M0 0 L-9 -12 L9 -12 Z" fill="#fff"/>
     <rect class="mk-body" x="-24" y="-64" width="48" height="48" rx="14" fill="#fff" stroke="#fff" stroke-width="2"/>
-    <image href="${k.emblem}" x="-19" y="-59" width="38" height="38" clip-path="url(#mk-clip)"/>
-    <circle cx="20" cy="-60" r="11" fill="#002d5b" stroke="#fff" stroke-width="2"/>
-    <text x="20" y="-55.5" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">${k.id}</text></g></g></g>`;
+    <image href="${k.emblem}" x="-19" y="-59" width="38" height="38" clip-path="url(#mk-clip)"/></g></g></g>`;
 }
 function centerMarkerSVG() {
   return `<g id="mk-c" role="img" aria-label="${esc(CENTER.name)}">
@@ -2047,7 +2046,7 @@ function mountMap(host, onSelect, opts = {}) {
         const n = nearestKiosk(pos.coords.latitude, pos.coords.longitude);
         S.sel = n.k.id; ctl.select(n.k.id); draw();
         $$('.loc[data-loc]').forEach((x) => x.classList.toggle('sel', x.dataset.loc === n.k.id));
-        toast(`Nearest: Silongan ${n.k.id}, ${fmtDist(n.m)} away, about ${walkMin(n.m)} min on foot.`);
+        toast(`Nearest: ${n.k.label}, ${fmtDist(n.m)} away, about ${walkMin(n.m)} min on foot.`);
       }, () => toast('Couldn’t get your location. Allow location access and try again.'), { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
     };
     let drag = null;
@@ -2124,8 +2123,8 @@ function mountMap(host, onSelect, opts = {}) {
       setTimeout(() => { if (tilesFailed) giveUp(); }, 8000);
       const markers = {};
       KIOSKS.forEach((k) => {
-        const icon = Lf.divIcon({ className: 'lmk', html: `<span class="lmk-pin"><img src="${k.emblem}" alt=""><b>${k.id}</b></span>`, iconSize: [46, 56], iconAnchor: [23, 56] });
-        markers[k.id] = Lf.marker([k.lat, k.lng], { icon, title: 'Silongan ' + k.id, alt: 'Silongan ' + k.id, riseOnHover: true }).addTo(map).on('click', () => onSelect(k.id));
+        const icon = Lf.divIcon({ className: 'lmk', html: `<span class="lmk-pin"><img src="${k.emblem}" alt=""></span>`, iconSize: [46, 56], iconAnchor: [23, 56] });
+        markers[k.id] = Lf.marker([k.lat, k.lng], { icon, title: k.label, alt: k.label, riseOnHover: true }).addTo(map).on('click', () => onSelect(k.id));
       });
       const bounds = Lf.latLngBounds(KIOSKS.map((k) => [k.lat, k.lng])).pad(opts.fit ? 0.8 : 0.5);
       const mark = (id) => Object.entries(markers).forEach(([mid, m]) => { const e = m.getElement(); if (e) e.classList.toggle('sel', mid === id); });
@@ -2144,7 +2143,7 @@ function mountMap(host, onSelect, opts = {}) {
           else me = Lf.marker(here, { icon: Lf.divIcon({ className: 'lmk', html: '<span class="me-dot"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }), title: 'You are here', interactive: false }).addTo(map);
           mark(n.k.id); map.flyToBounds(Lf.latLngBounds([here, [n.k.lat, n.k.lng]]).pad(0.35), { maxZoom: 18, duration: calm() ? 0 : 0.8 });
           S.sel = n.k.id; $$('.loc[data-loc]').forEach((x) => x.classList.toggle('sel', x.dataset.loc === n.k.id));
-          toast(`Nearest: Silongan ${n.k.id}, ${fmtDist(n.m)} away, about ${walkMin(n.m)} min on foot.`);
+          toast(`Nearest: ${n.k.label}, ${fmtDist(n.m)} away, about ${walkMin(n.m)} min on foot.`);
         }, () => toast('Couldn’t get your location. Allow location access and try again.'), { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
       };
       host.addEventListener('click', (e) => { const b = e.target.closest('[data-lmap]'); if (!b) return; if (b.dataset.lmap === 'fit') ctl.reset(); else ctl.locate(); });
@@ -2209,7 +2208,7 @@ function activeCard(r, full) {
     <dl class="kv">${r.payg ? `
       <div><dt>Reference</dt><dd class="num">${esc(r.ref)}</dd></div>
       <div><dt>Pricing</dt><dd>Pay as you go · max ₱40 a day</dd></div>
-      <div><dt>Unlocked</dt><dd>Silongan ${esc(k.id)} · ${fmtDT(r.startedAt)}</dd></div>
+      <div><dt>Unlocked</dt><dd>${esc(k.label)} · ${fmtDT(r.startedAt)}</dd></div>
       <div><dt>Return to</dt><dd>Any Silongan</dd></div>
       <div><dt>Charged on return to</dt><dd>${payLabel()}</dd></div>
       <div><dt>Status</dt><dd>${chip(i.st)}</dd></div>` : `
@@ -2218,7 +2217,7 @@ function activeCard(r, full) {
       <div><dt>Price</dt><dd class="num">${peso(r.price)}</dd></div>
       <div><dt>Started</dt><dd>${fmtDT(r.startedAt + 0)}</dd></div>
       <div><dt>Scheduled return</dt><dd>${fmtDT(endOf(r))}</dd></div>
-      <div><dt>Vending machine</dt><dd>Silongan ${esc(k.id)}</dd></div>
+      <div><dt>Vending machine</dt><dd>${esc(k.label)}</dd></div>
       <div><dt>Status</dt><dd>${chip(i.st)}</dd></div>`}
     </dl>
     ${full ? `
@@ -2246,7 +2245,7 @@ function noActiveCard() {
 function histItem(r) {
   const st = statusOf(r), k = kiosk(r.kioskId), total = r.price + r.lateFee;
   return `<article class="hist-item rcpt"><div class="rcpt-label">Demo receipt</div>
-    <div class="top-line"><div><div class="ref">${esc(r.ref)}</div><div class="muted small">${esc(r.label)}${r.payg && r.returnedAt ? ' · ' + fmtDurShort(r.returnedAt - r.startedAt) : ''} · Silongan ${esc(k.id)}</div></div>
+    <div class="top-line"><div><div class="ref">${esc(r.ref)}</div><div class="muted small">${esc(r.label)}${r.payg && r.returnedAt ? ' · ' + fmtDurShort(r.returnedAt - r.startedAt) : ''} · ${esc(k.label)}</div></div>
       <div class="row" style="gap:6px">${r.sample ? '<span class="chip sim">Sample</span>' : '<span class="chip sim">Simulated</span>'}${chip(st)}</div></div>
     <div class="hist-meta">
       <div>Date<br><b>${fmtDT(r.startedAt)}</b></div>
@@ -2354,7 +2353,7 @@ function viewHome() {
     <section class="stack home-sec" aria-label="Silongan map"><div class="sec-head"><h2>Find a Silongan</h2><a href="#locations" data-go="locations" class="small">Open full map</a></div>
       <div class="mapfx"><div class="map-card cool" id="home-map"></div>${CFG.GOOGLE_MAPS_API_KEY ? '' : '<div class="radar" aria-hidden="true"></div>'}
         <div class="mapfx-chip"><i></i>${KIOSKS.length} vending machines around BGC</div></div>
-      <div class="legend">${KIOSKS.map((k) => `<button class="lg-chip" type="button" data-action="home-pin" data-id="${k.id}"><img src="${k.emblem}" alt=""><span><b>Silongan ${k.id}</b><small>${esc(k.title)}</small></span></button>`).join('')}</div>
+      <div class="legend">${KIOSKS.map((k) => `<button class="lg-chip" type="button" data-action="home-pin" data-id="${k.id}"><img src="${k.emblem}" alt=""><span><b>${esc(k.label)}</b><small>${esc(k.title)}</small></span></button>`).join('')}</div>
       <p class="muted small">Pin positions are approximate until the machines are installed. Live availability is not connected yet.</p>
     </section>
 
@@ -2397,7 +2396,7 @@ function viewHomeLive() {
     <section class="stack home-sec" aria-label="Silongan map"><div class="sec-head"><h2>Find a Silongan</h2><a href="#locations" data-go="locations" class="small">Open full map</a></div>
       <div class="mapfx"><div class="map-card cool" id="home-map"></div>${CFG.GOOGLE_MAPS_API_KEY ? '' : '<div class="radar" aria-hidden="true"></div>'}
         <div class="mapfx-chip"><i></i>3 planned machines around BGC</div></div>
-      <div class="legend">${KIOSKS.map((k) => `<button class="lg-chip" type="button" data-action="home-pin" data-id="${k.id}"><img src="${k.emblem}" alt=""><span><b>Silongan ${k.id}</b><small>${esc(k.title)}</small></span></button>`).join('')}</div>
+      <div class="legend">${KIOSKS.map((k) => `<button class="lg-chip" type="button" data-action="home-pin" data-id="${k.id}"><img src="${k.emblem}" alt=""><span><b>${esc(k.label)}</b><small>${esc(k.title)}</small></span></button>`).join('')}</div>
       <p class="muted small">Pin positions are approximate until the machines are installed.</p>
     </section>
 
@@ -2573,7 +2572,7 @@ function openTopUp(pre) {
 /* ---- Locations ---- */
 function locCard(k) {
   return `<article class="loc ${S.sel === k.id ? 'sel' : ''}" data-loc="${k.id}">
-    <div class="loc-head"><img src="${k.emblem}" alt=""><div style="min-width:0"><span class="eyebrow">Silongan ${esc(k.id)}</span><h3 class="loc-title">${esc(k.title)}</h3><p class="loc-addr">${esc(k.address)}</p></div></div>
+    <div class="loc-head"><img src="${k.emblem}" alt=""><div style="min-width:0"><span class="eyebrow">${esc(k.label)}</span><h3 class="loc-title">${esc(k.title)}</h3><p class="loc-addr">${esc(k.address)}</p></div></div>
     <div class="pillrow"><span class="chip plain">Availability: coming soon</span><span class="chip plain">Hours: coming soon</span></div>
     <div class="btn-row">
       <a class="btn sm" href="${dirUrl(k)}" target="_blank" rel="noopener">${ic('nav', 'sm')} Get Directions</a>
@@ -2648,7 +2647,7 @@ function rentSheet(kioskId) {
     <div class="modal-head"><div><span class="eyebrow">Scan to rent · demo</span><h2>Unlock an umbrella</h2></div><button class="icon-btn" type="button" data-close aria-label="Close">${ic('x')}</button></div>
     <div class="scan-box"><span class="qr">${ic('qr')}</span><div><b>At the machine, you scan its QR code with this app.</b><p class="muted small" style="margin:4px 0 0">${canScan() ? 'Try it with a printed SILONG QR, or pick the machine below.' : 'In this demo, pick the machine below instead.'}</p>${canScan() ? `<button class="btn sm" type="button" data-action="scan-camera" style="margin-top:10px">${ic('qr', 'sm')} Scan with camera</button>` : ''}</div></div>
     <fieldset style="border:0;padding:0;margin:0;display:grid;gap:10px"><legend class="lbl" style="font-weight:600;margin-bottom:8px">Vending machine</legend>
-      ${KIOSKS.map((k) => `<label class="opt"><input type="radio" name="kiosk" value="${k.id}" ${k.id === kid ? 'checked' : ''}><span><b>Silongan ${k.id}</b><span>${esc(k.title)}</span></span></label>`).join('')}
+      ${KIOSKS.map((k) => `<label class="opt"><input type="radio" name="kiosk" value="${k.id}" ${k.id === kid ? 'checked' : ''}><span><b>${esc(k.label)}</b><span>${esc(k.title)}</span></span></label>`).join('')}
     </fieldset>
     <div class="ladder" aria-label="Prices">${PLANS.map((p, i) => `<div><b class="num">${pesoW(p.price)}</b><small>${['first hour', 'up to 3 h', 'up to 6 h', 'per day, max'][i]}</small></div>`).join('')}</div>
     <div class="pay-line"><span class="muted">Charged when you return it</span><b><span class="gcash-dot">G</span>${payLabel()}</b></div>
@@ -2968,7 +2967,7 @@ function renderAuth(r) {
   } else {
     mode = 'welcome';
     inner = `<div class="auth-lang"><div class="seg notr" role="group" aria-label="Language"><button type="button" data-action="lang-set" data-lang="en" aria-pressed="${I18N.lang === 'en'}">English</button><button type="button" data-action="lang-set" data-lang="fil" aria-pressed="${I18N.lang === 'fil'}">Filipino</button></div></div>
-      ${S.pendingScan ? `<div class="notice">${ic('qr', 'sm')}<span>${bi(`You scanned <b>Silongan ${S.pendingScan}</b>. Try the demo or log in, and it opens right there.`, `Na-scan mo ang <b>Silongan ${S.pendingScan}</b>. Subukan ang demo o mag-log in, at doon ito bubukas.`)}</span></div>` : ''}
+      ${S.pendingScan ? `<div class="notice">${ic('qr', 'sm')}<span>${bi(`You scanned <b>${esc(kName(S.pendingScan))}</b>. Try the demo or log in, and it opens right there.`, `Na-scan mo ang <b>${esc(kName(S.pendingScan))}</b>. Subukan ang demo o mag-log in, at doon ito bubukas.`)}</span></div>` : ''}
       <span class="eyebrow">Smart umbrella rental · BGC</span>
       <div><h1 class="tagline">Shelter on the Go.</h1><p class="muted" style="margin-top:10px;font-size:1.05rem">Rain or shine, borrow an umbrella in BGC and return it to any Silongan. You pay only for the time you use.</p></div>
       <ul class="feat"><li><span class="ft">${ic('pin', 'sm')}</span>Find a Silongan around BGC</li><li><span class="ft">${ic('tag', 'sm')}</span>₱15 for the first hour, never more than ₱40 a day</li><li><span class="ft">${ic('qr', 'sm')}</span>Scan the QR, take an umbrella, return it anywhere</li></ul>
@@ -3370,7 +3369,7 @@ function askAnswer(raw) {
       'Hindi pa konektado sa prototype na ito ang oras ng bukas at ang bilang ng payong. Kapag naka-link na ang mga makina, makikita mo pareho sa bawat Silongan.')) + `<div>${go('locations', 'Silongan details', 'Detalye ng Silongan')}</div>`;
   if (has('where', 'saan', 'nasaan', 'location', 'nearest', 'malapit', ' near', 'machine', 'makina', 'silongan', ' map', 'mapa', 'bgc', 'high street'))
     return bi('There are 3 Silongans in BGC, all around Bonifacio High Street:', 'May 3 Silongan sa BGC, lahat malapit sa Bonifacio High Street:')
-      + `<ul class="ask-list">${KIOSKS.map((k) => `<li><b>Silongan ${k.id}</b>: ${esc(k.title)}</li>`).join('')}</ul>`
+      + `<ul class="ask-list">${KIOSKS.map((k) => `<li><b>${esc(k.label)}</b>: ${esc(k.title)}</li>`).join('')}</ul>`
       + bi('The map can also find the one nearest you.', 'Kaya rin ng mapa na hanapin ang pinakamalapit sa iyo.') + `<div>${go('locations', 'Open the map', 'Buksan ang mapa')}</div>`;
   if (has('account', 'password', 'delete', 'privacy', ' data', 'email', 'mobile number', 'log out', 'logout'))
     return (LIVE ? bi('In My Account you can change your name, mobile number and password, turn launch news on or off, or delete the account. SILONG uses your details only for your account, support and launch news. To change your email, message Customer support.',
@@ -3524,7 +3523,26 @@ Promise.all([I18N.init(), Cloud.init()]).catch(() => {}).finally(() => {
   if (LIVE && S.user) Team.check().then((is) => { if (is) { S.shell = false; route(); } });   /* approvers get the approval page and, while testing, Top up */
 });
 /* Offline support and instant repeat visits */
-if ('serviceWorker' in navigator && isSecureContext) navigator.serviceWorker.register(LIVE ? 'sw.js?ns=' + NS : 'sw.js').catch(() => { /* offline mode unavailable */ });
+if ('serviceWorker' in navigator && isSecureContext) {
+  const hadWorker = !!navigator.serviceWorker.controller;   /* installed before: a new worker taking over is an update */
+  let swReg = null, lastCheck = Date.now();
+  navigator.serviceWorker.register(LIVE ? 'sw.js?ns=' + NS : 'sw.js').then((r) => { swReg = r; }).catch(() => { /* offline mode unavailable */ });
+  /* home-screen apps often come back from the background without reloading: look for a new version then */
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !swReg || Date.now() - lastCheck < 60000) return;
+    lastCheck = Date.now(); swReg.update().catch(() => { /* offline: try next time */ });
+  });
+  /* back on Wi-Fi or data after being offline: get the latest version straight away */
+  addEventListener('online', () => { if (!swReg) return; lastCheck = Date.now(); swReg.update().catch(() => { /* still offline */ }); });
+  /* when a new version takes over, reload once so it shows right away, unless someone is in the middle of something */
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadWorker || reloading) return;
+    const busy = document.querySelector('.modal') || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
+    if (busy) { toast('SILONG was updated. Close and reopen it to see what’s new.'); return; }
+    reloading = true; location.reload();
+  });
+}
 })();
 
 </script>
