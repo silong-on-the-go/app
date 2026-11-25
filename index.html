@@ -2173,7 +2173,9 @@ const MORE = LIVE ? ['how', 'terms', 'support'] : ['wallet', 'rates', 'how', 'te
 const SIM_NOTE = L('Prototype: linked payments, QR unlock, RFID returns and machine availability are simulated. No money moves and no umbrella is released.',
   'SILONG is launching soon. Renting and payments open when the machines are installed.');
 /* the real app adds Payment when top-ups are open to this person, and the approval page for the team */
-const WALLET_NAV = { id: 'wallet', label: 'Payment', tab: 'Payment', icon: 'wallet' }, TEAM_NAV = { id: 'team', label: 'Approve top-ups', tab: 'Team', icon: 'check' };
+const WALLET_NAV = { id: 'wallet', label: 'Top up', tab: 'Top up', icon: 'wallet' }, TEAM_NAV = { id: 'team', label: 'Approve top-ups', tab: 'Team', icon: 'check' };
+/* phones: when someone can top up, Top up takes the Prices spot in the bottom bar and Prices moves into More */
+const tabIds = () => (LIVE && topupsOpen() ? ['home', 'locations', 'wallet', 'account'] : TABS);
 function navItems() {
   if (!LIVE) return NAV;
   const list = NAV.slice();
@@ -2182,7 +2184,7 @@ function navItems() {
   return list;
 }
 const navItem = (id) => navItems().find((x) => x.id === id) || NAV.find((x) => x.id === id) || (id === 'wallet' ? WALLET_NAV : TEAM_NAV);
-const moreIds = () => (LIVE ? MORE.concat(topupsOpen() ? ['wallet'] : [], Team.is ? ['team'] : []) : MORE);
+const moreIds = () => (LIVE ? (topupsOpen() ? ['rates'] : []).concat(MORE, Team.is ? ['team'] : []) : MORE);
 
 function pageHead(title, sub) { return `<div class="page-head"><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ''}</div>`; }
 
@@ -2364,7 +2366,8 @@ function viewHome() {
 function viewHomeLive() {
   const u = S.user, first = u ? u.name.trim().split(/\s+/)[0] : '';
   const tiles = [['locations', 'img/b3e5dbed33.png', 'Find a Silongan', '3 planned spots'], ['rates', 'img/2724515ba7.png', 'Prices', '₱15 first hour'], ['how', 'img/d87dedd030.png', 'How it works', 'Scan, take, return'],
-    u ? ['account', 'img/eb52b0bc4b.png', 'My account', u.launch !== false ? 'Launch news on' : 'Launch news off'] : ['register', 'img/eb52b0bc4b.png', 'Create an account', 'Get launch news']];
+    topupsOpen() ? ['wallet', 'img/eb52b0bc4b.png', 'Top up', 'GCash, Maya or bank']
+      : u ? ['account', 'img/eb52b0bc4b.png', 'My account', u.launch !== false ? 'Launch news on' : 'Launch news off'] : ['register', 'img/eb52b0bc4b.png', 'Create an account', 'Get launch news']];
   return `<div class="view home">
     <section class="hero">
       <span class="eyebrow">SILONG · Shelter on the Go</span>
@@ -2372,7 +2375,7 @@ function viewHomeLive() {
       <p>Rain or shine, borrow an umbrella at a Silongan in BGC and return it to any other. You pay only for the time you use.</p>
       <div class="hero-chips"><span class="hchip">${ic('clock', 'sm')} <b>Launching soon</b></span>${u
         ? `<a class="hchip" href="#account" data-go="account">${ic(u.launch !== false ? 'check' : 'bell', 'sm')} ${u.launch !== false ? 'You’re on the launch list' : 'Launch news is off'}</a>`
-        : `<a class="hchip" href="#register">${ic('bell', 'sm')} Get launch news</a>`}</div>
+        : `<a class="hchip" href="#register">${ic('bell', 'sm')} Get launch news</a>`}${topupsOpen() ? `<a class="hchip" href="#wallet" data-go="wallet">${ic('wallet', 'sm')} <b data-credit>${Credit.balance == null ? '…' : peso(Credit.balance)}</b> credit · Top up</a>` : ''}</div>
       <div class="hero-umb" aria-hidden="true">${ic('umbrella')}<i class="drop d1"></i><i class="drop d2"></i><i class="drop d3"></i></div>
       <div class="skyline" aria-hidden="true"></div><div class="pattern-strip"></div>
     </section>
@@ -2405,7 +2408,7 @@ function viewHomeLive() {
 function viewCredit() {
   if (!topupsOpen()) return viewSoon('wallet');
   return `<div class="view">
-    ${pageHead('Payment', 'SILONG credit pays for your rentals. Top up by bank or e-wallet transfer.')}
+    ${pageHead('Top up', 'SILONG credit pays for your rentals. Top up by bank or e-wallet transfer.')}
     <div class="grid two-col" style="gap:22px">
       <div class="stack">
         <div class="card balance cardface"><div class="skyline" aria-hidden="true"></div><span class="eyebrow">SILONG credit</span>
@@ -3002,7 +3005,7 @@ function buildShell() {
         ${u ? `<button class="avatar" type="button" data-go="account" aria-label="My account">${esc(initials(u.name))}</button>` : `<a class="btn sm top-login" href="#login">Log in</a>`}</div></header>
       <main id="main" tabindex="-1"><div id="view-host"></div></main>
     </div>
-    <nav class="tabbar" aria-label="Main">${TABS.map((id) => { const n = NAV.find((x) => x.id === id); return `<a class="tab" href="#${id}" data-go="${id}" data-nav="${id}">${ic(n.icon)}<span>${n.tab}</span></a>`; }).join('')}
+    <nav class="tabbar" aria-label="Main">${tabIds().map((id) => { const n = navItem(id); return `<a class="tab" href="#${id}" data-go="${id}" data-nav="${id}">${ic(n.icon)}<span>${n.tab}</span></a>`; }).join('')}
       <button class="tab" type="button" data-action="more" data-nav="more">${ic('more')}<span>More</span></button></nav>
   </div>`;
   S.shell = true; S.lastBal = undefined;
@@ -3014,7 +3017,7 @@ function renderView(keepScroll) {
   host.innerHTML = VIEWS[S.route]();
   const a = activeRental(); S.lastStatus = a ? statusOf(a) : null;
   $$('[data-nav]').forEach((el) => {
-    const id = el.dataset.nav, on = id === S.route || (id === 'more' && !TABS.includes(S.route) && moreIds().includes(S.route));
+    const id = el.dataset.nav, on = id === S.route || (id === 'more' && !tabIds().includes(S.route) && moreIds().includes(S.route));
     if (on) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
   });
   paintBalance(); runCounts();
@@ -3023,7 +3026,7 @@ function renderView(keepScroll) {
     S.hmap = mountMap($('#home-map'), (id) => { S.sel = id; location.hash = '#locations'; }, { fit: true });
   }
   if (S.route === 'locations') S.map = mountMap($('#map-host'), (id) => selectKiosk(id, true));
-  if (S.route === 'wallet' && LIVE) Credit.mount();
+  if ((S.route === 'wallet' || S.route === 'home') && LIVE) Credit.mount();   /* the credit on the Top up page and the home chip */
   if (S.route === 'team') paintTeam();
   if (keepScroll) window.scrollTo(0, y);
 }

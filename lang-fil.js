@@ -418,6 +418,7 @@
     'If you top up, SILONG keeps the amount, the receipt screenshot, the reference number and the name you give, as payment records, even if you later delete your account. Only you and the SILONG team can see your screenshot.': 'Kung mag-top up ka, itatago ng SILONG ang halaga, ang screenshot ng resibo, ang reference number, at ang pangalang ibinigay mo bilang talaan ng bayad, kahit burahin mo pa ang account mo. Ikaw at ang SILONG team lang ang makakakita ng screenshot mo.'
   });
   Object.assign(dict, { 'All three are paid by QR: you’ll scan or upload it in that app.': 'QR ang bayad sa tatlo: i-scan o i-upload mo ito sa app na iyon.', 'GCash, Maya or bank': 'GCash, Maya, o bangko' });
+  Object.assign(dict, { 'credit · Top up': 'credit · Mag-top up' });
   const patterns = [
     [/^\+(₱\d+) fee$/, '+$1 na bayad'],
     [/^(₱[\d,]+) credit \+ (₱\d+) processing fee$/, '$1 na credit + $2 na processing fee'],
