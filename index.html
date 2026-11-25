@@ -276,6 +276,8 @@ main { min-width: 0; outline: none; padding-bottom: calc(var(--nav-h) + 32px + e
   color: var(--ink-2); font-size: .7rem; font-weight: 600; text-decoration: none; min-height: 52px; align-content: center;
 }
 .tab[aria-current="page"] { color: var(--link); background: var(--info-bg); }
+.tab span { white-space: nowrap; }                         /* one line per label, even "Mag-top up" */
+@media (max-width: 380px) { .tab { font-size: .64rem; } }  /* small phones: a touch smaller so every label fits */
 
 .page-head { display: grid; gap: 8px; }
 .page-head p { color: var(--ink-2); max-width: 62ch; }
